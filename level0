@@ -7,8 +7,11 @@
 
 path = ARGV.length > 0 ? ARGV[0] : '/usr/share/dict/words'
 entries = {}
-entries0 = File.read(path).split("\n")
-entries0.each {|k| entries[k.to_sym] = true }
+f = File.open(path, 'r')
+while !f.eof?
+  line = f.readline.strip
+  entries[line.to_sym] = true
+end
 output = ''
 
 while !$stdin.eof?
@@ -21,4 +24,5 @@ while !$stdin.eof?
     end
   end
 end
+
 print output
