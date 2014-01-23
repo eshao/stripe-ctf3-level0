@@ -1,29 +1,32 @@
-#!/usr/bin/env ruby
+#!/usr/bin/env node
 
-# Our test cases will always use the same dictionary file (with SHA1
-# 6b898d7c48630be05b72b3ae07c5be6617f90d8e). Running `test/harness`
-# will automatically download this dictionary for you if you don't
-# have it already.
+"use strict";
 
-path = ARGV.length > 0 ? ARGV[0] : '/usr/share/dict/words'
-entries = {}
-f = File.open(path, 'r')
-while !f.eof?
-  line = f.readline.strip
-  entries[line.to_sym] = true
-end
-f.close
-output = ''
+var fs = require('fs')
+  , es = require('event-stream')
+  , _ = require('underscore')
 
-while !$stdin.eof?
-  line = $stdin.readline
-  output = output + line.gsub(/[^ \n]+/) do |word|
-    if entries[word.downcase.to_sym]
-      word
-    else
-      "<#{word}>"
-    end
-  end
-end
+var path = process.argv.length > 2 ? process.argv[2] : '/usr/share/dict/words'
+var entries = {}
+fs.readFile(path, 'utf-8', function(err, data) {
+  _.each(data.split('\n'), function(word) {
+    entries[word] = true
+  })
 
-print output
+  process.stdin.setEncoding('utf-8')
+  process.stdin
+    .pipe(es.split())
+    .pipe(es.map(function(line, cb) {
+      line = line.replace(/[^ \n]+/g, function(match) {
+        if (entries[match.toLowerCase()]) {
+          return match
+        } else {
+          return '<' + match + '>'
+        }
+      })
+      cb(null, line)
+    }))
+    .pipe(es.join('\n'))
+    .pipe(process.stdout)
+})
+
