@@ -6,14 +6,19 @@
 # have it already.
 
 path = ARGV.length > 0 ? ARGV[0] : '/usr/share/dict/words'
-entries = File.read(path).split("\n")
+entries = {}
+entries0 = File.read(path).split("\n")
+entries0.each {|k| entries[k.to_sym] = true }
+output = ''
 
-contents = $stdin.read
-output = contents.gsub(/[^ \n]+/) do |word|
-  if entries.include?(word.downcase)
-    word
-  else
-    "<#{word}>"
+while !$stdin.eof?
+  line = $stdin.readline
+  output = output + line.gsub(/[^ \n]+/) do |word|
+    if entries[word.downcase.to_sym]
+      word
+    else
+      "<#{word}>"
+    end
   end
 end
 print output
