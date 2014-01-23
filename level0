@@ -12,6 +12,7 @@ while !f.eof?
   line = f.readline.strip
   entries[line.to_sym] = true
 end
+f.close
 output = ''
 
 while !$stdin.eof?
